@@ -1,65 +1,52 @@
-import scala.collection.immutable.IndexedSeq
-
-/**
- * Created by indix on 12/2/15.
- */
-class Processor {
+class Processor1 {
   //This is the processor class and holds the variables. x can be edited by only agents. saved can be edited only by admins
-  var x: List[Any] = Nil
-  var saved: List[Any] = Nil
-}
-
-class ProcessorAgent(p: Processor){
-  def respond(value: String): List[Any] = {
-    value :: p.x
-  }
-}
-
-class command(com: String) {
-  com match {
-    case "commit"+ z => {
-
+  var x: List[String] = List()
+  var saved: List[String] = List()
+  def process(command: Request) = {
+    command match {
+      case Commit => saved = x
+      case Rollback => x = saved
+      case Transaction(value) => x = value :: x
     }
   }
 }
 
-case class request(req: String) {
+sealed trait Request
+case object Commit extends Request
+case object Rollback extends Request
+case class Transaction(value: String) extends Request
 
+trait Actor {
+  def submit(request: Request): Unit
 }
-
-case object commit{
-
+case class User(name: String, p: Processor1) extends Actor {
+  def submit(request: Request): Unit = {
+    request match {
+      case Transaction(value) => p.process(request)
+      case _ => throw new IllegalArgumentException("Cannot perform operations like Commit and Rollback")
+    }
+  }
 }
-
-case object rollback {
-
-}
-
-trait Agent {
-  //This trait is used to make sure that Agent objects have access to at least the respond function
-  def edit(x: Any): Any
-}
-
-class Agents(p: ProcessorAgent) extends Agent {
-  //This class is where the functionality of the agents class is specified
-  def edit(x: Any): Any = { //calls the respond function of the Processor class
-    p.respond(x)
+case class Admin(name: String, p: Processor1) extends Actor {
+  def submit(request: Request): Unit = {
+    request match {
+      case Commit     => p.process(request)
+      case Rollback   => p.process(request)
+      case _          => throw new IllegalArgumentException("Cannot perform operations apart from Commit and Rollback")
+    }
   }
 }
 
-trait Administrator {
-  //Gives commit and rollback definition
-  def commitByAdmin(): Any
-  def rollbackByAdmin(): Any
-}
+object test{
+  val p = new Processor1
+  val A = new User("A", p)
+  val B = new User("B", p)
+  val C = new User("C", p)
 
-class Admin(p: Processor) extends Administrator{
-  //Definitions of the Administrator class
-  def commitByAdmin(): Any = { //calls commit function of the processor
-    p.commit()
-  }
+  val admin1 = new Admin("Admin 1", p)
+  val admin2 = new Admin("Admin 2", p)
 
-  def rollbackByAdmin(): Any = { //calls rollback function of the processor
-    p.rollback()
-  }
+  A.submit(Transaction("push 5"))
+  A.submit(Transaction("get 10"))
+  admin1.submit(Commit)
 }

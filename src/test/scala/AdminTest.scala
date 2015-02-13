@@ -4,7 +4,7 @@ import org.scalatest.Matchers._
 /**
  * Created by indix on 12/2/15.
  */
-class AdminTest extends FlatSpec {
+/** class AdminTest extends FlatSpec {
   "AdminTest" should "test if the admin functionality of commit and rollback work properly" in {
     val p = new Processor
     val A = new Agents(p)
@@ -33,3 +33,5 @@ class AdminTest extends FlatSpec {
 
   }
 }
+
+  */

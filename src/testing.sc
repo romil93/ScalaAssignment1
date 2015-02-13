@@ -1,19 +1,64 @@
-val p = new Processor
+/**
+ * Created by indix on 12/2/15.
+ */
 
-val A = new Agents(p)
 
-val admin1 = new Admin(p)
+class Processor1 {
+  //This is the processor class and holds the variables. x can be edited by only agents. saved can be edited only by admins
+  private var x: List[String] = List()
+  private var saved: List[String] = List()
+  def process(command: Request) = {
+    command match {
+      case Commit => saved = x
+      case Rollback => x = saved
+      case Transaction(value) => x = value :: x
+      case _ => throw new Exception("Invalid process")
+    }
+  }
+  def printval() = {
+    print(x)
+    print(saved)
+  }
+}
 
-admin1.rollbackByAdmin()
+trait Request
+case object Commit extends Request
+case object Rollback extends Request
+case class Transaction(value: String) extends Request
 
-A.edit(10)
+trait Actor {
+  def submit(request: Request): Unit
+}
+case class User(name: String, p: Processor1) extends Actor {
+  def submit(request: Request): Unit = {
+    request match {
+      case Transaction(value) => p.process(request)
+    }
+  }
+}
+case class Admin(name: String, p: Processor1) extends Actor {
+  def submit(request: Request): Unit = {
+    request match {
+      case Commit     => p.process(request)
+      case Rollback   => p.process(request)
+      case _          => throw new IllegalArgumentException("Cannot perform operations apart from Commit and Rollback")
+    }
+  }
+}
 
-admin1.commitByAdmin()
+object test{
+  val p = new Processor1
+  val A = new User("A", p)
+  val B = new User("B", p)
+  val C = new User("C", p)
 
-admin1.rollbackByAdmin()
+  val admin1 = new Admin("Admin 1", p)
+  val admin2 = new Admin("Admin 2", p)
+  p.printval()
+  A.submit(Transaction("push 5"))
+  A.submit(Transaction("get 10"))
+  admin1.submit(Commit)
 
-p.commit()
-A.edit(20)
-
-p.rollback()
-p.commit()
+  p.printval()
+}
+test

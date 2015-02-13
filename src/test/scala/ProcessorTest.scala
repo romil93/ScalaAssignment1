@@ -1,7 +1,7 @@
 /**
  * Created by indix on 12/2/15.
  */
-
+/**
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
@@ -15,3 +15,4 @@ class ProcessorTest extends FlatSpec {
     p.rollback() should be(0)
   }
 }
+*/

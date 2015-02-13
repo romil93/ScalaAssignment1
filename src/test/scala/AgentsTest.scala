@@ -1,3 +1,4 @@
+/**
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 /**
@@ -17,3 +18,4 @@ class AgentsTest extends FlatSpec {
     //There can be no fail test case as there is only one function it is given access to.
   }
 }
+*/
